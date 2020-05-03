@@ -14,12 +14,12 @@ d.wait_for_cmd(d.grip(False))
 
 g_state = False
 
-d_origin_x = -170.
-d_origin_y = 122.
-d_origin_z = 60.
+d_origin_x = 225.
+d_origin_y = 0.
+d_origin_z = 15.
 dr = -20
 
-d_scale = 10.
+d_scale = 300.
 
 try:
     while True:
@@ -29,16 +29,15 @@ try:
         ix, iy, iz, ig = float(vals[0]), float(vals[1]), float(vals[2]), 'r' in vals[3]
         print(ix, iy, iz, ig)
 
-        dx = d_origin_x + d_scale * ix
-        dy = d_origin_y + d_scale * iz
+        dx = d_origin_x + d_scale * -iz
+        dy = d_origin_y + d_scale * -ix
         dz = d_origin_z + d_scale * iy
-        '''
-        if dx > -180 and dx < 180 and dy > -180 and dy < 180 and dz > -10 and dz < 60:
+        
+        if dx > 180 and dx < 270 and dy > -110 and dy < 110 and dz > -30 and dz < 70:
             d.wait_for_cmd(d.move_to(dx, dy, dz, dr))
         if ig != g_state:
             d.wait_for_cmd(d.grip(g_state))
             g_state = ig
-        '''
 
         # Read and discard any buffered samples
         sock.setblocking(0)
