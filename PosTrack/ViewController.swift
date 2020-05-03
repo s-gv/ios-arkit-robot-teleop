@@ -46,6 +46,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.addGestureRecognizer(swipeLeftGesture)
         sceneView.addGestureRecognizer(swipeRightGesture)
         
+        // Load host from persistant store
+        self.host = UserDefaults.standard.string(forKey: "host") ?? self.host
+        
         // Set up UDP Connection
         self.setupUDPConnection()
         
@@ -113,6 +116,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             
             let host = ac.textFields![0]
             self.host = host.text!
+            UserDefaults.standard.set(self.host, forKey: "host")
             self.setupUDPConnection()
         }
         ac.addAction(submitAction)
