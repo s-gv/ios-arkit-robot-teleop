@@ -36,10 +36,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Set up gestures
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapGesture))
         
-        let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeGesture))
+        let swipeLeftGesture = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeLeftGesture))
+        swipeLeftGesture.direction = .left
+        
+        let swipeRightGesture = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeRightGesture))
+        swipeRightGesture.direction = .right
         
         sceneView.addGestureRecognizer(tapGesture)
-        sceneView.addGestureRecognizer(swipeGesture)
+        sceneView.addGestureRecognizer(swipeLeftGesture)
+        sceneView.addGestureRecognizer(swipeRightGesture)
         
         // Set up UDP Connection
         self.setupUDPConnection()
@@ -99,20 +104,30 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
     
     @objc
-    func swipeGesture() {
+    func swipeLeftGesture() {
         let ac = UIAlertController(title: "Host", message: "Enter host address (ex: 10.32.33.46)", preferredStyle: .alert)
         ac.addTextField()
         
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         let submitAction = UIAlertAction(title: "Submit", style: .default) { (_) in
             
             let host = ac.textFields![0]
             self.host = host.text!
             self.setupUDPConnection()
-            
         }
         ac.addAction(submitAction)
         
+        
         present(ac, animated: true)
+    }
+    
+    @objc
+    func swipeRightGesture() {
+        if case .ready = self.connection?.state {
+            let content = ":SR"
+            self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
+            }))
+        }
     }
     
     func session(_ session: ARSession, didFailWithError error: Error) {
