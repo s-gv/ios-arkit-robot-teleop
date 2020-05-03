@@ -70,6 +70,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         print("Tapped")
         tapVal = !tapVal!
         sceneView.showsStatistics = tapVal!
+        
+        var request = URLRequest(url: URL(string: "http://192.168.0.46:8000/postrack")!)
+        request.httpMethod = "POST"
+        let postString = "Hello \(tapVal!)"
+        request.httpBody = postString.data(using: String.Encoding.utf8)
+        
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+        }
+        task.resume()
+        
     }
     
     func session(_ session: ARSession, didFailWithError error: Error) {
