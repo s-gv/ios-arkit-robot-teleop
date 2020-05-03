@@ -14,6 +14,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     var tapVal: Bool?
+    var host: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,9 +32,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Set the scene to the view
         sceneView.scene = scene
         
+        // Set up gestures
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapGesture))
         
+        let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeGesture))
+        
         sceneView.addGestureRecognizer(tapGesture)
+        sceneView.addGestureRecognizer(swipeGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -67,11 +72,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 */
     @objc
     func tapGesture() {
-        print("Tapped")
+        // print("Tapped")
         tapVal = !tapVal!
         sceneView.showsStatistics = tapVal!
-        
-        var request = URLRequest(url: URL(string: "http://192.168.0.46:8000/postrack")!)
+        var request = URLRequest(url: URL(string: self.host ?? "http://192.168.0.46:8000/postrack")!)
         request.httpMethod = "POST"
         let postString = "Hello \(tapVal!)"
         request.httpBody = postString.data(using: String.Encoding.utf8)
@@ -81,6 +85,26 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         }
         task.resume()
         
+    }
+    
+    @objc
+    func swipeGesture() {
+        print("Swipe")
+        
+        let ac = UIAlertController(title: "POST address", message: "Enter POST address (ex: http://10.32.33.46:8000/postrack", preferredStyle: .alert)
+        ac.addTextField()
+        
+        let submitAction = UIAlertAction(title: "Submit", style: .default) { (_) in
+            
+            let host = ac.textFields![0]
+            print(host)
+            
+            self.host = host.text!
+            
+        }
+        ac.addAction(submitAction)
+        
+        present(ac, animated: true)
     }
     
     func session(_ session: ARSession, didFailWithError error: Error) {
