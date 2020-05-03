@@ -9,12 +9,14 @@
 import UIKit
 import SceneKit
 import ARKit
+import Network
 
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     var tapVal: Bool?
     var host: String?
+    var connection: NWConnection?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,6 +53,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.session.run(configuration)
         
         sceneView.session.delegate = self
+        
+        // UDP Connection
+        self.connection = NWConnection(host: "192.168.0.46", port: 8000, using: .udp)
+        self.connection?.start(queue: .global())
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -75,23 +81,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // print("Tapped")
         tapVal = !tapVal!
         sceneView.showsStatistics = tapVal!
-        var request = URLRequest(url: URL(string: self.host ?? "http://192.168.0.46:8000/postrack")!)
-        request.httpMethod = "POST"
-        let postString = "Hello \(tapVal!)"
-        request.httpBody = postString.data(using: String.Encoding.utf8)
         
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            
-        }
-        task.resume()
-        
+        let content = "Yoda--\(tapVal!) "
+        self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
+        }))
     }
     
     @objc
     func swipeGesture() {
         print("Swipe")
         
-        let ac = UIAlertController(title: "POST address", message: "Enter POST address (ex: http://10.32.33.46:8000/postrack", preferredStyle: .alert)
+        let ac = UIAlertController(title: "Host", message: "Enter host address (ex: 10.32.33.46:8000)", preferredStyle: .alert)
         ac.addTextField()
         
         let submitAction = UIAlertAction(title: "Submit", style: .default) { (_) in
@@ -114,7 +114,14 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let currentTransform = frame.camera.transform
-        print(currentTransform.columns.3.x, currentTransform.columns.3.y, currentTransform.columns.3.z)
+        let x = currentTransform.columns.3.x
+        let y = currentTransform.columns.3.y
+        let z = currentTransform.columns.3.z
+        print(x, y, z)
+        
+        let content = "\(x), \(y), \(z) \n"
+        self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
+        }))
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
