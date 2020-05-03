@@ -14,8 +14,8 @@ import Network
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
-    var tapVal: Bool?
-    var host: String?
+    var tapVal: Bool = false
+    var host: String = "192.168.0.46"
     var connection: NWConnection?
     
     override func viewDidLoad() {
@@ -25,8 +25,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.delegate = self
         
         // Show statistics such as fps and timing information
-        tapVal = true
-        sceneView.showsStatistics = true
+        sceneView.showsStatistics = self.tapVal
         
         // Create a new scene
         let scene = SCNScene(named: "art.scnassets/ship.scn")!
@@ -41,6 +40,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         
         sceneView.addGestureRecognizer(tapGesture)
         sceneView.addGestureRecognizer(swipeGesture)
+        
+        // Set up UDP Connection
+        self.setupUDPConnection()
+        
+        // Set up notification
+        NotificationCenter.default.addObserver(self, selector: #selector(self.appWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -53,10 +58,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.session.run(configuration)
         
         sceneView.session.delegate = self
-        
-        // UDP Connection
-        self.connection = NWConnection(host: "192.168.0.46", port: 8000, using: .udp)
-        self.connection?.start(queue: .global())
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -64,6 +65,21 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         
         // Pause the view's session
         sceneView.session.pause()
+    }
+    
+    @objc
+    func appWillEnterForeground() {
+        // UDP Connection
+        print("App entered foreground...")
+        self.setupUDPConnection()
+    }
+    
+    func setupUDPConnection() {
+        self.connection = NWConnection(host: NWEndpoint.Host(self.host), port: 9090, using: .udp)
+        self.connection?.stateUpdateHandler = { (newState) in
+            print(newState)
+        }
+        self.connection?.start(queue: .global())
     }
 
     // MARK: - ARSCNViewDelegate
@@ -78,28 +94,20 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 */
     @objc
     func tapGesture() {
-        // print("Tapped")
-        tapVal = !tapVal!
-        sceneView.showsStatistics = tapVal!
-        
-        let content = "Yoda--\(tapVal!) "
-        self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
-        }))
+        tapVal = !tapVal
+        sceneView.showsStatistics = tapVal
     }
     
     @objc
     func swipeGesture() {
-        print("Swipe")
-        
-        let ac = UIAlertController(title: "Host", message: "Enter host address (ex: 10.32.33.46:8000)", preferredStyle: .alert)
+        let ac = UIAlertController(title: "Host", message: "Enter host address (ex: 10.32.33.46)", preferredStyle: .alert)
         ac.addTextField()
         
         let submitAction = UIAlertAction(title: "Submit", style: .default) { (_) in
             
             let host = ac.textFields![0]
-            print(host)
-            
             self.host = host.text!
+            self.setupUDPConnection()
             
         }
         ac.addAction(submitAction)
@@ -113,15 +121,19 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        let currentTransform = frame.camera.transform
-        let x = currentTransform.columns.3.x
-        let y = currentTransform.columns.3.y
-        let z = currentTransform.columns.3.z
-        print(x, y, z)
-        
-        let content = "\(x), \(y), \(z) \n"
-        self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
-        }))
+        if case .normal = frame.camera.trackingState {
+            if case .ready = self.connection?.state {
+                let currentTransform = frame.camera.transform
+                let x = currentTransform.columns.3.x
+                let y = currentTransform.columns.3.y
+                let z = currentTransform.columns.3.z
+                //print(x, y, z)
+                
+                let content = "\(x), \(y), \(z), \(tapVal) \n"
+                self.connection?.send(content: content.data(using: .utf8), completion: NWConnection.SendCompletion.contentProcessed({ (NWError) in
+                }))
+            }
+        }
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
