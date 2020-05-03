@@ -13,6 +13,7 @@ import ARKit
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
+    var tapVal: Bool?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,6 +22,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.delegate = self
         
         // Show statistics such as fps and timing information
+        tapVal = true
         sceneView.showsStatistics = true
         
         // Create a new scene
@@ -28,6 +30,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         
         // Set the scene to the view
         sceneView.scene = scene
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapGesture))
+        
+        sceneView.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -59,6 +65,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         return node
     }
 */
+    @objc
+    func tapGesture() {
+        print("Tapped")
+        tapVal = !tapVal!
+        sceneView.showsStatistics = tapVal!
+    }
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
