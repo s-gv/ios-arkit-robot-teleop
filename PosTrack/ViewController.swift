@@ -10,7 +10,7 @@ import UIKit
 import SceneKit
 import ARKit
 
-class ViewController: UIViewController, ARSCNViewDelegate {
+class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     
@@ -38,6 +38,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
         // Run the view's session
         sceneView.session.run(configuration)
+        
+        sceneView.session.delegate = self
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -61,6 +63,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
         
+    }
+    
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        let currentTransform = frame.camera.transform
+        print(currentTransform.columns.3.x, currentTransform.columns.3.y, currentTransform.columns.3.z)
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
