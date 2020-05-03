@@ -21,6 +21,10 @@ dr = -20
 
 d_scale = 300.
 
+dx_min, dx_max = 180, 270
+dy_min, dy_max = -110, 110
+dz_min, dz_max = -30, 70
+
 try:
     while True:
         data, addr = sock.recvfrom(1024)
@@ -34,9 +38,12 @@ try:
         dx = d_origin_x + d_scale * -iz
         dy = d_origin_y + d_scale * -ix
         dz = d_origin_z + d_scale * iy
+       
+        dx = dx_min if dx < dx_min else (dx_max if dx > dx_max else dx)
+        dy = dy_min if dy < dy_min else (dy_max if dy > dy_max else dy)
+        dz = dz_min if dz < dz_min else (dz_max if dz > dz_max else dz)
         
-        if dx > 180 and dx < 270 and dy > -110 and dy < 110 and dz > -30 and dz < 70:
-            d.wait_for_cmd(d.move_to(dx, dy, dz, dr))
+        d.wait_for_cmd(d.move_to(dx, dy, dz, dr))
         if ig != g_state:
             d.wait_for_cmd(d.grip(g_state))
             g_state = ig
