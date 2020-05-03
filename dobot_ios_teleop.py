@@ -25,6 +25,8 @@ try:
     while True:
         data, addr = sock.recvfrom(1024)
         txt = data.decode('utf-8').strip()
+        if txt.startswith(':'):
+            continue
         vals = txt.split(',')
         ix, iy, iz, ig = float(vals[0]), float(vals[1]), float(vals[2]), 'r' in vals[3]
         print(ix, iy, iz, ig)
