@@ -1,7 +1,9 @@
 ios-arkit-robot-teleop 
 ======================
 
-Teleoperate a robot arm using the iPhone. This uses the Augmented Reality (ARKit) toolkit in iOS to track the 3D position of an iOS device in the room and moves the robot arm in lockstep. The iOS device sends out its position via UDP which is received on a PC / Mac to control the robot. This repo includes sample code to control the Kuka robot in the PyBullet simulation enivronment and the Dobot Magician robot arm.
+Teleoperate a robot arm using the iPhone. This can be useful to collect data for imitation learning. It uses the Augmented Reality (ARKit) toolkit in iOS to track the 3D position of an iOS device in the room and moves the robot arm in lockstep. The iOS device sends out its position via UDP which is received on a PC / Mac to control the robot. This repo includes sample code to control the Kuka robot in the PyBullet simulation enivronment and the Dobot Magician robot arm.
+
+A video demonstrating teleoperation is [here](https://www.youtube.com/watch?v=AyUDHlND0L4).
 
 How to use
 ----------
